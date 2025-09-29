@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Master NFT Staking</title>
+  <script src="https://unpkg.com/@waxio/waxjs/dist"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0e0e0e;
+      color: #fff;
+    }
+
+    /* Header */
+    .header {
+      background: #111;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+    }
+    .menu-icon {
+      cursor: pointer;
+      font-size: 24px;
+      margin-right: 15px;
+    }
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    /* Banner */
+    .banner {
+      width: 100%;
+      height: 200px;
+      background: url("https://ipfs.io/ipfs/bafybeiejdkgnx634gwsmqxlnxu3zjb633wudxscurlgfvantjdua3w66sa") no-repeat center center;
+      background-size: cover;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      height: 100%;
+      width: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background: #1b1b1b;
+      overflow-x: hidden;
+      transition: 0.3s;
+      padding-top: 60px;
+      z-index: 1000;
+    }
+    .sidebar a {
+      padding: 12px 20px;
+      text-decoration: none;
+      font-size: 16px;
+      color: #ddd;
+      display: block;
+      transition: 0.2s;
+    }
+    .sidebar a:hover {
+      background: #333;
+    }
+    .close-btn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    /* Content */
+    .content {
+      padding: 20px;
+      text-align: center;
+    }
+    .btn {
+      padding: 12px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .btn-wallet {
+      background: #2a9d8f;
+      color: white;
+    }
+    .btn-claim {
+      background: #e9c46a;
+      color: black;
+    }
+    .btn-shop {
+      background: #264653;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <span class="menu-icon" onclick="openSidebar()">☰</span>
+    <div class="title">Snake Master NFT</div>
+  </div>
+
+  <!-- Banner -->
+  <div class="banner"></div>
+
+  <!-- Sidebar -->
+  <div id="sidebar" class="sidebar">
+    <span class="close-btn" onclick="closeSidebar()">×</span>
+    <a href="#" onclick="stakeNFT()">Staking NFT</a>
+    <a href="#" onclick="unstakeNFT()">Unstake NFT</a>
+    <a href="#" onclick="claimReward()">Claim Reward</a>
+    <a href="#">Inventory</a>
+    <a href="https://neftyblocks.com/collection/packbadgesnk/drops" target="_blank">Shop</a>
+    <a href="#">Setting: Bahasa</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content">
+    <h2>Selamat datang di Snake Master NFT Staking</h2>
+    <p>Koleksi: <b>packbadgesnk</b></p>
+
+    <!-- Tombol Login Wallet -->
+    <button class="btn btn-wallet" onclick="loginWombat()">Login dengan Wombat</button>
+    <button class="btn btn-wallet" onclick="loginCloud()">Login dengan Cloud Wallet</button>
+
+    <!-- Tombol Claim Reward -->
+    <div id="claim">
+      <h3>Reward Anda</h3>
+      <button class="btn btn-claim" onclick="claimReward()">Claim Reward</button>
+    </div>
+
+    <!-- Link Shop -->
+    <p>
+      <a href="https://neftyblocks.com/collection/packbadgesnk/drops" target="_blank">
+        <button class="btn btn-shop">Buka Shop</button>
+      </a>
+    </p>
+  </div>
+
+  <script>
+    function openSidebar() {
+      document.getElementById("sidebar").style.width = "250px";
+    }
+    function closeSidebar() {
+      document.getElementById("sidebar").style.width = "0";
+    }
+
+    // Init WAX
+    const wax = new waxjs.WaxJS({ rpcEndpoint: "https://wax.greymass.com" });
+    let activeAccount = null;
+    const farmId = 1092; // farm Snake Master
+
+    async function loginWombat() {
+      try {
+        const userAccount = await wax.login();
+        activeAccount = userAccount;
+        alert("Login sukses (Wombat): " + userAccount);
+      } catch (e) {
+        alert("Login Wombat gagal!");
+      }
+    }
+
+    async function loginCloud() {
+      try {
+        const userAccount = await wax.login();
+        activeAccount = userAccount;
+        alert("Login sukses (Cloud): " + userAccount);
+      } catch (e) {
+        alert("Login Cloud Wallet gagal!");
+      }
+    }
+
+    async function claimReward() {
+      if (!activeAccount) {
+        alert("Login dulu sebelum klaim reward!");
+        return;
+      }
+      try {
+        const result = await wax.api.transact({
+          actions: [{
+            account: "waxdaofarmer",
+            name: "claim",
+            authorization: [{ actor: activeAccount, permission: "active" }],
+            data: { user: activeAccount, farm_id: farmId }
+          }]
+        }, { blocksBehind: 3, expireSeconds: 30 });
+        alert("Reward berhasil diklaim! ✅");
+        console.log(result);
+      } catch (err) {
+        alert("Klaim gagal: " + err.message);
+      }
+    }
+
+    async function stakeNFT() {
+      if (!activeAccount) {
+        alert("Login dulu sebelum staking!");
+        return;
+      }
+      const assetId = prompt("Masukkan Asset ID NFT yang mau di-stake:");
+      if (!assetId) return;
+      try {
+        const result = await wax.api.transact({
+          actions: [{
+            account: "waxdaofarmer",
+            name: "stake",
+            authorization: [{ actor: activeAccount, permission: "active" }],
+            data: { user: activeAccount, farm_id: farmId, asset_id: assetId }
+          }]
+        }, { blocksBehind: 3, expireSeconds: 30 });
+        alert("NFT " + assetId + " berhasil di-stake!");
+        console.log(result);
+      } catch (err) {
+        alert("Staking gagal: " + err.message);
+      }
+    }
+
+    async function unstakeNFT() {
+      if (!activeAccount) {
+        alert("Login dulu sebelum unstaking!");
+        return;
+      }
+      const assetId = prompt("Masukkan Asset ID NFT yang mau di-unstake:");
+      if (!assetId) return;
+      try {
+        const result = await wax.api.transact({
+          actions: [{
+            account: "waxdaofarmer",
+            name: "unstake",
+            authorization: [{ actor: activeAccount, permission: "active" }],
+            data: { user: activeAccount, farm_id: farmId, asset_id: assetId }
+          }]
+        }, { blocksBehind: 3, expireSeconds: 30 });
+        alert("NFT " + assetId + " berhasil di-unstake!");
+        console.log(result);
+      } catch (err) {
+        alert("Unstaking gagal: " + err.message);
+      }
+    }
+  </script>
+
+</body>
+</html>
